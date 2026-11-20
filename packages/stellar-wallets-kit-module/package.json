@@ -30,7 +30,7 @@
     "@creit.tech/stellar-wallets-kit": ">=1.0.0"
   },
   "devDependencies": {
-    "@creit.tech/stellar-wallets-kit": "^1.7.0",
+    "@creit.tech/stellar-wallets-kit": "^2.8.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0"
   }
