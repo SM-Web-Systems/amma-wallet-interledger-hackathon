@@ -1,0 +1,55 @@
+node_modules
+dist
+.env
+.env.local
+.env.production
+.env.development
+.env.*.local
+*.log
+.DS_Store
+.drizzle
+*.tsbuildinfo
+.turbo
+
+# Docker runtime env — secrets live here, never commit
+app.env
+app.env.*
+!app.env.example
+*.env.mainnet
+*.env.testnet
+
+# Database files and migration dumps
+*.db
+*.db-shm
+*.db-wal
+*.dump
+*.sql.gz
+
+# Build artifacts and caches
+.wrangler/
+.next/
+.output/
+coverage/
+.wallet-*-audit.json
+
+# Logs and runtime data
+logs/
+pids/
+*.pid
+
+# Temp / scratch
+tmp/
+.playwright-cli/
+output/playwright/
+*.tmp
+
+# OS
+Thumbs.db
+.worktrees/
+
+# Claude Code / Superpowers local dirs
+.claude/
+.superpowers/
+.cache/
+docker/interledger/.env
+docker/interledger/secrets/

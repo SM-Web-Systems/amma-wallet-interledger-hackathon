@@ -1,0 +1,28 @@
+# TEMPLATE ONLY. Replace this service key with the confirmed Testnet API service.
+# Combine only with the independently verified isolated Testnet compose files.
+# Keep DATABASE_URL in its existing environment block/$$ escaping arrangement.
+services:
+  REPLACE_WITH_CONFIRMED_TESTNET_API_SERVICE:
+    build:
+      args:
+        VCS_REF: ${XRPL_REVIEWED_REVISION:?Set the reviewed 40-character build revision}
+    init: true
+    stop_grace_period: 30s
+    volumes:
+      - type: bind
+        source: ${XRPL_CONTROL_HOST_DIR:?Set the confirmed operator-owned control directory}
+        target: /run/amma
+        read_only: true
+        bind:
+          create_host_path: false
+    environment:
+      STELLAR_NETWORK: testnet
+      XRPL_NETWORK: testnet
+      XRPL_ENABLED: ${XRPL_ENABLED:-false}
+      XRPL_PAYMENTS_ENABLED: ${XRPL_PAYMENTS_ENABLED:-false}
+      XRPL_INTEGRATION_ENABLED: ${XRPL_INTEGRATION_ENABLED:-false}
+      XRPL_RECONCILIATION_ENABLED: ${XRPL_RECONCILIATION_ENABLED:-false}
+      XRPL_MONITORING_ENABLED: ${XRPL_MONITORING_ENABLED:-false}
+      XRPL_SUBMISSION_CONTROL_FILE: /run/amma/xrpl-control.json
+      XRPL_MONITORING_INTERVAL_MS: 60000
+      XRPL_PENDING_ALERT_SECONDS: 300

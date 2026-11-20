@@ -1,0 +1,144 @@
+name: amma-interledger-test
+x-backend: &backend
+  image: ghcr.io/interledger/rafiki-backend:v2.4.2-beta
+  restart: unless-stopped
+  networks: [payments]
+  environment: &backend-env
+    # Rafiki's development mode rewrites https:// Open Payments URLs to http://
+    # for peer-to-peer and client-key calls, which breaks TLS-fronted peers.
+    NODE_ENV: production
+    LOG_LEVEL: info
+    USE_TIGERBEETLE: 'false'
+    TRUST_PROXY: 'true'
+    OPEN_PAYMENTS_PORT: '3000'
+    ADMIN_PORT: '3001'
+    CONNECTOR_PORT: '3002'
+    ENABLE_AUTO_PEERING: 'false'
+    ENABLE_TELEMETRY: 'false'
+    SIGNATURE_VERSION: '1'
+    ADMIN_API_SIGNATURE_VERSION: '1'
+x-auth: &auth
+  image: ghcr.io/interledger/rafiki-auth:v2.4.2-beta
+  restart: unless-stopped
+  networks: [payments]
+services:
+  database-a:
+    image: postgres:16
+    networks: [payments]
+    environment:
+      POSTGRES_USER: rafiki
+      POSTGRES_PASSWORD: ${PEER_A_DATABASE_PASSWORD:?Set a URL-safe random database password}
+      POSTGRES_DB: rafiki
+    volumes: [database-a:/var/lib/postgresql/data, ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro]
+    healthcheck: {test: ['CMD-SHELL', 'pg_isready -U rafiki'], interval: 5s, timeout: 3s, retries: 20}
+  database-b:
+    image: postgres:16
+    networks: [payments]
+    environment:
+      POSTGRES_USER: rafiki
+      POSTGRES_PASSWORD: ${PEER_B_DATABASE_PASSWORD:?Set a distinct URL-safe random database password}
+      POSTGRES_DB: rafiki
+    volumes: [database-b:/var/lib/postgresql/data, ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro]
+    healthcheck: {test: ['CMD-SHELL', 'pg_isready -U rafiki'], interval: 5s, timeout: 3s, retries: 20}
+  redis-a:
+    image: redis:7-alpine
+    networks: [payments]
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes: [redis-a:/data]
+  redis-b:
+    image: redis:7-alpine
+    networks: [payments]
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes: [redis-b:/data]
+  auth-a:
+    <<: *auth
+    depends_on: {database-a: {condition: service_healthy}, redis-a: {condition: service_started}}
+    ports: ['127.0.0.1:13006:3006', '127.0.0.1:13009:3009', '127.0.0.1:13003:3003']
+    environment:
+      NODE_ENV: production
+      AUTH_DATABASE_URL: postgresql://rafiki:${PEER_A_DATABASE_PASSWORD}@database-a/rafiki_auth
+      REDIS_URL: redis://redis-a:6379/1
+      AUTH_SERVER_URL: ${PEER_A_AUTH_URL:?Set peer A public HTTPS auth URL}
+      IDENTITY_SERVER_URL: ${AMMA_CONSENT_URL:?Set HTTPS Amma consent page URL}
+      IDENTITY_SERVER_SECRET: ${PEER_A_IDP_SECRET:?Set peer A IdP secret}
+      ADMIN_API_SECRET: ${PEER_A_ADMIN_SECRET:?Set peer A admin secret}
+      OPERATOR_TENANT_ID: ${PEER_A_TENANT_ID:?Set peer A UUID}
+      COOKIE_KEY: ${PEER_A_COOKIE_KEY:?Set peer A cookie key}
+      TRUST_PROXY: 'true'
+      QUOTE_INTERACTION: 'false'
+      INCOMING_PAYMENT_INTERACTION: 'false'
+  auth-b:
+    <<: *auth
+    depends_on: {database-b: {condition: service_healthy}, redis-b: {condition: service_started}}
+    ports: ['127.0.0.1:23006:3006', '127.0.0.1:23009:3009', '127.0.0.1:23003:3003']
+    environment:
+      NODE_ENV: production
+      AUTH_DATABASE_URL: postgresql://rafiki:${PEER_B_DATABASE_PASSWORD}@database-b/rafiki_auth
+      REDIS_URL: redis://redis-b:6379/1
+      AUTH_SERVER_URL: ${PEER_B_AUTH_URL:?Set peer B public HTTPS auth URL}
+      IDENTITY_SERVER_URL: ${PEER_B_CONSENT_URL:?Set peer B consent page URL}
+      IDENTITY_SERVER_SECRET: ${PEER_B_IDP_SECRET:?Set peer B IdP secret}
+      ADMIN_API_SECRET: ${PEER_B_ADMIN_SECRET:?Set peer B admin secret}
+      OPERATOR_TENANT_ID: ${PEER_B_TENANT_ID:?Set peer B UUID}
+      COOKIE_KEY: ${PEER_B_COOKIE_KEY:?Set peer B cookie key}
+      TRUST_PROXY: 'true'
+      QUOTE_INTERACTION: 'false'
+      INCOMING_PAYMENT_INTERACTION: 'false'
+  peer-a:
+    <<: *backend
+    depends_on: {database-a: {condition: service_healthy}, auth-a: {condition: service_started}}
+    ports: ['127.0.0.1:13000:3000', '127.0.0.1:13001:3001', '127.0.0.1:13002:3002']
+    volumes: ['./secrets/peer-a.pem:/run/secrets/private-key.pem:ro']
+    environment:
+      <<: *backend-env
+      DATABASE_URL: postgresql://rafiki:${PEER_A_DATABASE_PASSWORD}@database-a/rafiki
+      REDIS_URL: redis://redis-a:6379/0
+      INSTANCE_NAME: Amma test provider A
+      ILP_ADDRESS: test.amma.a
+      ILP_CONNECTOR_URL: http://peer-a:3002
+      AUTH_SERVER_GRANT_URL: ${PEER_A_AUTH_URL}
+      AUTH_SERVER_INTROSPECTION_URL: http://auth-a:3007
+      AUTH_SERVICE_API_URL: http://auth-a:3011
+      OPEN_PAYMENTS_URL: ${PEER_A_RESOURCE_URL:?Set peer A public HTTPS resource URL}
+      # Rafiki hides its own instance wallet address (it only serves its
+      # jwks.json), so it must differ from the Amma client/sender address
+      # (PEER_A_CLIENT_ADDRESS) that provision-peers.ts creates.
+      WALLET_ADDRESS_URL: ${PEER_A_RESOURCE_URL}/.well-known/pay
+      WEBHOOK_URL: ${PEER_A_WEBHOOK_URL:?Set peer A Amma webhook URL}
+      ADMIN_API_SECRET: ${PEER_A_ADMIN_SECRET}
+      OPERATOR_TENANT_ID: ${PEER_A_TENANT_ID}
+      SIGNATURE_SECRET: ${PEER_A_WEBHOOK_SECRET:?Set peer A webhook secret}
+      STREAM_SECRET: ${PEER_A_STREAM_SECRET:?Set random base64 stream secret}
+      PRIVATE_KEY_FILE: /run/secrets/private-key.pem
+      KEY_ID: ${PEER_A_KEY_ID:?Set peer A key ID}
+  peer-b:
+    <<: *backend
+    depends_on: {database-b: {condition: service_healthy}, auth-b: {condition: service_started}}
+    ports: ['127.0.0.1:23000:3000', '127.0.0.1:23001:3001', '127.0.0.1:23002:3002']
+    volumes: ['./secrets/peer-b.pem:/run/secrets/private-key.pem:ro']
+    environment:
+      <<: *backend-env
+      DATABASE_URL: postgresql://rafiki:${PEER_B_DATABASE_PASSWORD}@database-b/rafiki
+      REDIS_URL: redis://redis-b:6379/0
+      INSTANCE_NAME: Amma test provider B
+      ILP_ADDRESS: test.amma.b
+      ILP_CONNECTOR_URL: http://peer-b:3002
+      AUTH_SERVER_GRANT_URL: ${PEER_B_AUTH_URL}
+      AUTH_SERVER_INTROSPECTION_URL: http://auth-b:3007
+      AUTH_SERVICE_API_URL: http://auth-b:3011
+      OPEN_PAYMENTS_URL: ${PEER_B_RESOURCE_URL:?Set peer B public HTTPS resource URL}
+      WALLET_ADDRESS_URL: ${PEER_B_RESOURCE_URL}/.well-known/pay
+      WEBHOOK_URL: ${PEER_B_WEBHOOK_URL:?Set peer B Amma webhook URL}
+      ADMIN_API_SECRET: ${PEER_B_ADMIN_SECRET}
+      OPERATOR_TENANT_ID: ${PEER_B_TENANT_ID}
+      SIGNATURE_SECRET: ${PEER_B_WEBHOOK_SECRET:?Set peer B webhook secret}
+      STREAM_SECRET: ${PEER_B_STREAM_SECRET:?Set random base64 stream secret}
+      PRIVATE_KEY_FILE: /run/secrets/private-key.pem
+      KEY_ID: ${PEER_B_KEY_ID:?Set peer B key ID}
+networks:
+  payments: {}
+volumes:
+  database-a: {}
+  database-b: {}
+  redis-a: {}
+  redis-b: {}

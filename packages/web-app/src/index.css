@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+/* `dark:` follows the in-app theme toggle (data-theme), not the OS setting. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ── Amma brand system (2026-11 refresh) ─────────────────────────────
+   Jade + marigold on warm neutrals, replacing the stock violet-on-black.
+   Jade reads as "money that is safe"; marigold is the star in the mark and is
+   used sparingly for highlights. All text pairs meet WCAG AA (4.5:1).
+
+   Older screens still use violet/purple/indigo utility classes; they are
+   remapped to the jade scale below so the whole app changes in one place. */
+@theme {
+  --color-jade-50: #eefbf7;
+  --color-jade-100: #d3f5ea;
+  --color-jade-200: #a9ead6;
+  --color-jade-300: #5ee0be;
+  --color-jade-400: #2fc7a1;
+  --color-jade-500: #16a384;
+  --color-jade-600: #0b846c;
+  --color-jade-700: #0a6a58;
+  --color-jade-800: #0b5548;
+  --color-jade-900: #0b463c;
+  --color-jade-950: #042822;
+  --color-marigold-300: #f8c76d;
+  --color-marigold-400: #f2a93b;
+  --color-marigold-500: #e08e16;
+
+  --color-violet-50: var(--color-jade-50);
+  --color-violet-100: var(--color-jade-100);
+  --color-violet-200: var(--color-jade-200);
+  --color-violet-300: var(--color-jade-300);
+  --color-violet-400: var(--color-jade-400);
+  --color-violet-500: var(--color-jade-500);
+  --color-violet-600: var(--color-jade-600);
+  --color-violet-700: var(--color-jade-700);
+  --color-violet-800: var(--color-jade-800);
+  --color-violet-900: var(--color-jade-900);
+  --color-purple-300: var(--color-jade-300);
+  --color-purple-400: var(--color-jade-400);
+  --color-purple-500: var(--color-jade-500);
+  --color-purple-600: var(--color-jade-700);
+  --color-purple-700: var(--color-jade-800);
+  --color-indigo-500: var(--color-jade-500);
+  --color-indigo-600: var(--color-jade-600);
+  --color-indigo-700: var(--color-jade-700);
+
+  /* Legacy token names kept so every screen picks up the new palette. */
+  --color-stellar-blue: var(--theme-primary);
+  --color-stellar-purple: var(--theme-primary-hover);
+  --color-stellar-link: var(--theme-link);
+  --color-stellar-accent: var(--color-marigold-400);
+  --color-stellar-dark: var(--theme-bg);
+  --color-stellar-card: var(--theme-card);
+  --color-stellar-border: var(--theme-border);
+  --color-stellar-text: var(--theme-text);
+  --color-stellar-muted: var(--theme-muted);
+  --color-stellar-success: #16a34a;
+  --color-stellar-danger: #dc2626;
+  /* Text versions of the two status colours: the fills above keep white text, these read on the page and card. */
+  --color-stellar-success-text: var(--theme-success-text);
+  --color-stellar-danger-text: var(--theme-danger-text);
+  --color-stellar-bg: var(--theme-bg);
+  /* Hover and selected fills that read on both themes (white tint on dark, ink tint on light). */
+  --color-stellar-hover: var(--theme-hover);
+  --color-stellar-hover-strong: var(--theme-hover-strong);
+
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Dark theme (default) */
+:root,
+[data-theme="dark"] {
+  --theme-bg: #0c1110;
+  --theme-card: #131a18;
+  --theme-raised: #18211e;
+  --theme-border: #24302c;
+  --theme-text: #e6eeea;
+  --theme-muted: #94a39d;
+  --theme-primary: #0b7a65;
+  --theme-primary-hover: #0b846c;
+  --theme-link: #5ee0be;
+  --theme-success-text: #4ade80;
+  --theme-danger-text: #f87171;
+  --theme-hover: rgb(255 255 255 / 0.05);
+  --theme-hover-strong: rgb(255 255 255 / 0.1);
+  --theme-hero: linear-gradient(135deg, #0b5548 0%, #0a3d34 55%, #10201c 100%);
+  color-scheme: dark;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --theme-bg: #f5f4ef;
+  --theme-card: #ffffff;
+  --theme-raised: #fbfaf7;
+  --theme-border: #e2e0d8;
+  --theme-text: #14201c;
+  --theme-muted: #5a6863;
+  --theme-primary: #0a6a58;
+  --theme-primary-hover: #0b5548;
+  --theme-link: #0a6a58;
+  --theme-success-text: #166534;
+  --theme-danger-text: #b91c1c;
+  --theme-hover: rgb(20 32 28 / 0.05);
+  --theme-hover-strong: rgb(20 32 28 / 0.09);
+  --theme-hero: linear-gradient(135deg, #0a6a58 0%, #0b5548 60%, #0b463c 100%);
+  color-scheme: light;
+}
+
+body {
+  @apply bg-stellar-dark text-stellar-text min-h-screen;
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Touch screens: buttons, fields and menu links are at least 44 px tall (WCAG 2.5.8 asks for 24 px, 2.5.5 and the
+   platform guides ask for 44). Buttons and links inside a line of text keep their own size. The rule sits in the base
+   layer, so a control whose shape must stay small (a switch, a page-number square) opts out with `min-h-0`. */
+@layer base {
+  @media (pointer: coarse) {
+    button:not(p button, li > p button),
+    select,
+    input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="range"]),
+    summary,
+    a.ui-btn-primary,
+    a.ui-btn-secondary {
+      min-height: 44px;
+    }
+  }
+}
+
+/* ── Shared UI primitives ─────────────────────────────────────────
+   Small, theme-aware building blocks so new flows (payments, consent)
+   look like the rest of the wallet without repeating long class lists. */
+@layer components {
+  .ui-card {
+    @apply rounded-2xl border border-stellar-border bg-stellar-card shadow-[0_1px_2px_rgb(0_0_0/0.04)];
+  }
+  /* The balance "hero" on wallet home screens. */
+  .ui-hero {
+    @apply rounded-2xl text-white;
+    background: var(--theme-hero);
+  }
+  .ui-chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-stellar-border px-2 py-0.5 text-xs font-medium text-stellar-muted;
+  }
+  .ui-field {
+    @apply w-full rounded-lg border border-stellar-border bg-stellar-dark px-4 py-3 text-stellar-text placeholder:text-stellar-muted transition-colors focus:border-stellar-blue focus:outline-none;
+  }
+  .ui-label {
+    @apply mb-1.5 block text-sm font-medium text-stellar-muted;
+  }
+  .ui-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-stellar-blue text-white hover:bg-stellar-purple;
+  }
+  .ui-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 border border-stellar-border bg-stellar-card text-stellar-text hover:border-stellar-blue/60;
+  }
+  /* Two or three mutually exclusive choices (Create / Restore). */
+  .ui-segment {
+    @apply inline-flex rounded-lg border border-stellar-border bg-stellar-card p-1 text-sm;
+  }
+  .ui-segment-item {
+    @apply rounded-md px-3 py-1.5 font-medium text-stellar-muted transition-colors hover:text-stellar-text aria-pressed:bg-stellar-blue aria-pressed:text-white aria-pressed:shadow-sm;
+  }
+  .ui-link {
+    @apply text-stellar-link underline-offset-2 hover:underline;
+  }
+  /* Status messages readable on both themes. */
+  .ui-alert-error {
+    @apply rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300;
+  }
+  .ui-alert-ok {
+    @apply rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300;
+  }
+  .ui-alert-warn {
+    @apply rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200;
+  }
+  .ui-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 text-stellar-muted hover:bg-stellar-text/5 hover:text-stellar-text;
+  }
+}
+
+/* Visible keyboard focus everywhere, without changing mouse/touch look. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--theme-link);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "cli": {
+    "version": ">= 15.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "testnet": {
+      "extends": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://testnet.ammawallet.com",
+        "EXPO_PUBLIC_NETWORK_LOCK": "testnet"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  }
+}

@@ -1,0 +1,954 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Amma XRP Testnet integration",
+    "version": "1.0.0",
+    "description": "Release A native XRP, explicit browser approval only. External operations require BOTH the payer's short-lived personal JWT and an active database tenant key with the exact scope, active unsuspended tenant and tenant_users membership. One tenant is one application boundary; rotating keys retain access. No env keys, wildcard scopes or DB-outage fallback. Keep keys server-side. An API key never authorizes prepare/submit/rebroadcast/cancel. Existing first-party personal JWT routes also serve owners without an API key. External status omits unsigned preparation and receipt; fetch the receipt separately. Pending/timeout is never settlement. Rate limits are per process; deployment must enforce shared limits before scaling."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Use the operator-configured trusted Testnet API origin."
+    }
+  ],
+  "security": [
+    {
+      "UserSession": [],
+      "ApplicationKey": []
+    }
+  ],
+  "paths": {
+    "/api/v1/xrpl/payment-intents": {
+      "post": {
+        "operationId": "createXrpIntent",
+        "x-required-application-scope": "xrpl:payments:create",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Scope: user + application tenant + XRPL Testnet. Same body replays; conflicting reuse is 409."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "HTTP 400; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "HTTP 401; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HTTP 403; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTTP 404; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "HTTP 409; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "HTTP 413; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "HTTP 422; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "HTTP 429; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "HTTP 503; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Creates a request only. Open approvalPath on the trusted Amma frontend; the user must review and sign locally. Never send keys, passphrases or approved=true."
+      }
+    },
+    "/api/v1/xrpl/payment-intents/{id}": {
+      "get": {
+        "operationId": "getXrpIntent",
+        "x-required-application-scope": "xrpl:payments:read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "HTTP 400; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "HTTP 401; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HTTP 403; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTTP 404; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "HTTP 409; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "HTTP 413; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "HTTP 422; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "HTTP 429; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "HTTP 503; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/xrpl/payment-intents/{id}/receipt": {
+      "get": {
+        "operationId": "getXrpReceipt",
+        "x-required-application-scope": "xrpl:payments:read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "HTTP 400; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "HTTP 401; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HTTP 403; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTTP 404; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "HTTP 409; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "HTTP 413; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "HTTP 422; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "HTTP 429; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "HTTP 503; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/xrpl/payment-intents/{id}/claims": {
+      "post": {
+        "operationId": "claimXrpReceipt",
+        "x-required-application-scope": "xrpl:receipts:claim",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Claim"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "HTTP 400; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "HTTP 401; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HTTP 403; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTTP 404; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "HTTP 409; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "HTTP 413; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "HTTP 422; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "HTTP 429; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "HTTP 503; inspect error.code and retryable. Unavailability never proves non-payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Atomically consumes a validated receipt for one opaque purchase UUID. Same tenant/user/intent/purchase retry is idempotent, including key rotation. A second purchase, transaction, or payer cannot reuse it. A tenant purchase ID is single-use across payers. Verify settlement independently before fulfilment; enforce equivalent uniqueness in the consumer database."
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "UserSession": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Personal user access JWT obtained by the existing Amma authentication flow. Admin, refresh and SSO token types rejected."
+      },
+      "ApplicationKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "DB-backed tenant key with the operation's exact x-required-application-scope."
+      }
+    },
+    "schemas": {
+      "PaymentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "chain": {
+            "const": "xrpl"
+          },
+          "network": {
+            "const": "testnet"
+          },
+          "walletId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,14}$"
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 25,
+            "maxLength": 35,
+            "description": "Checksum-valid classic XRPL address; X-addresses rejected."
+          },
+          "destinationTag": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "amountDrops": {
+            "type": "string",
+            "pattern": "^(?:[1-9][0-9]{0,16}|100000000000000000)$",
+            "description": "Integer drops, at most 100000000000000000; 1 XRP = 1000000 drops."
+          },
+          "maxFeeDrops": {
+            "type": "string",
+            "pattern": "^(?:[1-9][0-9]{0,2}|1000)$",
+            "description": "1 to 1000 drops, capped by server policy."
+          },
+          "reference": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "chain",
+          "network",
+          "walletId",
+          "destination",
+          "amountDrops",
+          "maxFeeDrops",
+          "reference"
+        ]
+      },
+      "PaymentStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "chain": {
+            "const": "xrpl"
+          },
+          "network": {
+            "const": "testnet"
+          },
+          "walletId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,14}$"
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 25,
+            "maxLength": 35,
+            "description": "Checksum-valid classic XRPL address; X-addresses rejected."
+          },
+          "destinationTag": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "amountDrops": {
+            "type": "string",
+            "pattern": "^(?:[1-9][0-9]{0,16}|100000000000000000)$",
+            "description": "Integer drops, at most 100000000000000000; 1 XRP = 1000000 drops."
+          },
+          "maxFeeDrops": {
+            "type": "string",
+            "pattern": "^(?:[1-9][0-9]{0,2}|1000)$",
+            "description": "1 to 1000 drops, capped by server policy."
+          },
+          "reference": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "ownerId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 25,
+            "maxLength": 35,
+            "description": "Checksum-valid classic XRPL address; X-addresses rejected."
+          },
+          "state": {
+            "enum": [
+              "awaiting_approval",
+              "prepared",
+              "signed",
+              "submitted",
+              "validated_success",
+              "validated_failure",
+              "expired",
+              "cancelled"
+            ]
+          },
+          "transactionHash": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-F0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resultCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastObservation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "application": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "tenantId": {
+                    "type": "string",
+                    "pattern": "^[1-9][0-9]*$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  }
+                },
+                "required": [
+                  "tenantId",
+                  "name"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalPath": {
+            "type": "string",
+            "pattern": "^/xrpl\\?walletId=[1-9][0-9]*&intentId=[0-9a-f-]+$",
+            "description": "Append to your configured trusted Amma frontend origin. No credential or automatic approval is conveyed."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "chain",
+          "network",
+          "walletId",
+          "destination",
+          "amountDrops",
+          "maxFeeDrops",
+          "reference",
+          "id",
+          "ownerId",
+          "source",
+          "state",
+          "transactionHash",
+          "resultCode",
+          "lastObservation",
+          "application",
+          "approvalPath",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "Receipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "chain": {
+            "const": "xrpl"
+          },
+          "network": {
+            "const": "testnet"
+          },
+          "intentId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "transactionHash": {
+            "type": "string",
+            "pattern": "^[A-F0-9]{64}$"
+          },
+          "ledgerIndex": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "ledgerHash": {
+            "type": "string",
+            "pattern": "^[A-F0-9]{64}$"
+          },
+          "validated": {
+            "const": true
+          },
+          "result": {
+            "const": "tesSUCCESS"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 25,
+            "maxLength": 35,
+            "description": "Checksum-valid classic XRPL address; X-addresses rejected."
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 25,
+            "maxLength": 35,
+            "description": "Checksum-valid classic XRPL address; X-addresses rejected."
+          },
+          "destinationTag": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "currency": {
+            "const": "XRP"
+          },
+          "deliveredAmountDrops": {
+            "type": "string",
+            "pattern": "^(?:[1-9][0-9]{0,16}|100000000000000000)$",
+            "description": "Integer drops, at most 100000000000000000; 1 XRP = 1000000 drops."
+          },
+          "feeDrops": {
+            "type": "string",
+            "pattern": "^(?:[1-9][0-9]{0,16}|100000000000000000)$",
+            "description": "Integer drops, at most 100000000000000000; 1 XRP = 1000000 drops."
+          },
+          "reference": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "verifiedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "chain",
+          "network",
+          "intentId",
+          "transactionHash",
+          "ledgerIndex",
+          "ledgerHash",
+          "validated",
+          "result",
+          "source",
+          "destination",
+          "currency",
+          "deliveredAmountDrops",
+          "feeDrops",
+          "reference",
+          "verifiedAt"
+        ]
+      },
+      "ClaimInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "reference": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "transactionHash": {
+            "type": "string",
+            "pattern": "^[A-F0-9]{64}$"
+          },
+          "purchaseId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "reference",
+          "transactionHash",
+          "purchaseId"
+        ]
+      },
+      "Claim": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "chain": {
+            "const": "xrpl"
+          },
+          "network": {
+            "const": "testnet"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "intentId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "applicationTenantId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "transactionHash": {
+            "type": "string",
+            "pattern": "^[A-F0-9]{64}$"
+          },
+          "reference": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "purchaseId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "claimedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "chain",
+          "network",
+          "id",
+          "intentId",
+          "applicationTenantId",
+          "transactionHash",
+          "reference",
+          "purchaseId",
+          "claimedAt"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "requestId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "retryable",
+              "requestId"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+    }
+  }
+}

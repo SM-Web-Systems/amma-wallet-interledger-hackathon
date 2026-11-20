@@ -1,0 +1,26 @@
+{
+  "name": "@amma-wallet/evm-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared EVM engine for Amma Wallet clients: network registry, exact amounts, transfer construction, approval-bound signing and transaction lifecycle. Ethereum Sepolia only.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "2.57.20",
+    "@scure/bip39": "1.6.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  },
+  "files": [
+    "src"
+  ],
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

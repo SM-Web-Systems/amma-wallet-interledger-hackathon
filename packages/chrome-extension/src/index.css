@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  /* Amma brand (same as the web app's dark theme): jade + marigold on warm neutrals. */
+  --color-jade-300: #5ee0be;
+  --color-jade-400: #2fc7a1;
+  --color-jade-500: #16a384;
+  --color-jade-600: #0b846c;
+  --color-jade-700: #0a6a58;
+  --color-jade-800: #0b5548;
+  --color-jade-900: #0b463c;
+  --color-marigold-400: #f2a93b;
+
+  --color-stellar-bg: #0c1110;
+  --color-stellar-card: #131a18;
+  --color-stellar-border: #24302c;
+  --color-stellar-blue: #0b7a65;
+  --color-stellar-purple: #0b846c;
+  --color-stellar-link: #5ee0be;
+  --color-stellar-text: #e6eeea;
+  --color-stellar-muted: #94a39d;
+  --color-stellar-success: #16a34a;
+  --color-stellar-danger: #dc2626;
+  --color-stellar-dark: #0a0f0e;
+
+  /* Older screens use violet/purple/indigo/blue/cyan utilities; remap them to jade. */
+  --color-violet-500: var(--color-jade-500);
+  --color-purple-400: var(--color-jade-300);
+  --color-purple-500: var(--color-jade-500);
+  --color-purple-600: var(--color-jade-600);
+  --color-indigo-400: var(--color-jade-300);
+  --color-indigo-500: var(--color-jade-500);
+  --color-indigo-600: var(--color-jade-600);
+  --color-blue-500: var(--color-jade-500);
+  --color-blue-600: var(--color-jade-600);
+  --color-cyan-600: var(--color-jade-700);
+
+  /* Warm neutrals in place of the cool grays. */
+  --color-gray-300: #c9d2ce;
+  --color-gray-400: #94a39d;
+  --color-gray-500: #7b8a84;
+  --color-gray-600: #3a4a44;
+  --color-gray-700: #2c3833;
+  --color-gray-800: #1d2623;
+  --color-gray-900: #131a18;
+}
+
+html, body, #root {
+  width: 380px;
+  height: 600px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--color-stellar-bg);
+  color: var(--color-stellar-text);
+  font-family: "Inter", system-ui, sans-serif;
+}

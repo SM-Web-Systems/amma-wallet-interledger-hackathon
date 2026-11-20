@@ -1,0 +1,29 @@
+# TEST-ONLY overlay for a single machine without public DNS or real certificates.
+# Rafiki only accepts https:// wallet addresses, so this adds one Nginx container
+# that terminates TLS for both peers using a throwaway CA from ./secrets/tls/
+# (generate it with ./local-tls.sh). Never use this overlay on a staging host;
+# use real certificates and nginx.example.conf there instead.
+#
+#   docker compose --env-file .env -f compose.yml -f compose.local-tls.yml up -d
+x-trust-test-ca: &trust-test-ca
+  environment:
+    NODE_EXTRA_CA_CERTS: /run/secrets/test-ca.pem
+  volumes: ['./secrets/tls/ca.pem:/run/secrets/test-ca.pem:ro']
+services:
+  tls:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on: [peer-a, peer-b, auth-a, auth-b]
+    networks:
+      payments:
+        aliases: [pay-a.amma.test, auth-a.amma.test, pay-b.amma.test, auth-b.amma.test]
+    ports: ['127.0.0.1:443:443']
+    volumes:
+      - ./local-tls.nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./secrets/tls:/etc/nginx/tls:ro
+  # host.docker.internal lets peer webhooks reach an Amma backend running on the
+  # host (e.g. http://host.docker.internal:3001/api/v1/payments/webhooks/rafiki).
+  peer-a: {<<: *trust-test-ca, extra_hosts: ['host.docker.internal:host-gateway']}
+  peer-b: {<<: *trust-test-ca, extra_hosts: ['host.docker.internal:host-gateway']}
+  auth-a: *trust-test-ca
+  auth-b: *trust-test-ca
